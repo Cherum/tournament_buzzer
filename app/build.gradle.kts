@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.tournamentalarm"
+    namespace = "com.hemaguide.tournamentalarm"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.tournamentalarm"
+        applicationId = "com.hemaguide.tournamentalarm"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

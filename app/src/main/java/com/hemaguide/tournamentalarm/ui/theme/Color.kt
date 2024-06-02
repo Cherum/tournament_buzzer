@@ -1,4 +1,4 @@
-package com.example.tournamentalarm.ui.theme
+package com.hemaguide.tournamentalarm.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

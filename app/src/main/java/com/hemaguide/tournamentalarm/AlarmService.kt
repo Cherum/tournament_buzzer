@@ -1,4 +1,4 @@
-package com.example.tournamentalarm
+package com.hemaguide.tournamentalarm
 
 import android.app.Notification
 import android.app.NotificationChannel
