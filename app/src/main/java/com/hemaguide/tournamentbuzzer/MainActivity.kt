@@ -101,15 +101,17 @@ fun MainScreen(
         Text(
             text = "HEMA Tournament Buzzer"
         )
-        Button(onClick = { onButtonClick() }) {
-            Text(text = "Play Sound")
-        }
 
         Spacer(modifier = Modifier.height(16.dp))
         AfterBlowScreen (onDurationChanged = {onDurationChanged(it)})
 
         Spacer(modifier = Modifier.height(16.dp))
         AlarmTonePicker (onTypeChanged = {onToneChanged(it)})
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { onButtonClick() }) {
+            Text(text = "Play Sound")
+        }
     }
 }
 
@@ -202,8 +204,6 @@ fun AlarmTonePicker(onTypeChanged: (ToneType) -> Unit){
 @Composable
 fun GreetingPreview() {
     TournamentAlarmTheme {
-//        MainScreen(
-//            onButtonClick = {}
-//        )
+        MainScreen(onButtonClick = {}, onDurationChanged = {}, onToneChanged = {})
     }
 }

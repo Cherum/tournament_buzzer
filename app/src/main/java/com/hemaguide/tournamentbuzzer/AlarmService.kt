@@ -23,7 +23,7 @@ class AlarmService : Service() {
     private var isPlaying = false
     private val handler = Handler(Looper.getMainLooper())
 
-    private val toneDuration = 1500
+    private val toneDuration = 1100
 
     override fun onCreate() {
         super.onCreate()
@@ -59,7 +59,7 @@ class AlarmService : Service() {
         val notification: Notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("Alarm Service")
             .setContentText("Alarm service is running")
-            .setSmallIcon(R.drawable.logo_schwert_10U)
+            .setSmallIcon(R.drawable.logo_schwert_10)
             .build()
 
         startForeground(1, notification)
