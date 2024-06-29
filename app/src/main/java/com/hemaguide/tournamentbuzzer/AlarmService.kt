@@ -23,7 +23,7 @@ class AlarmService : Service() {
     private var isPlaying = false
     private val handler = Handler(Looper.getMainLooper())
 
-    private val toneDuration = 1100
+    private val toneDuration = 800
 
     override fun onCreate() {
         super.onCreate()
