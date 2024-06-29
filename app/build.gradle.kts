@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.hemaguide.tournamentalarm"
+    namespace = "com.hemaguide.tournamentbuzzer"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.hemaguide.tournamentalarm"
+        applicationId = "com.hemaguide.tournamentbuzzer"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -56,5 +56,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material")
+    debugImplementation(libs.ui.tooling)
 }
 

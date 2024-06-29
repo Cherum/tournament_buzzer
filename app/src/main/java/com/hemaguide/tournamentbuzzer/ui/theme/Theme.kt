@@ -1,4 +1,4 @@
-package com.hemaguide.tournamentalarm.ui.theme
+package com.hemaguide.tournamentbuzzer.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

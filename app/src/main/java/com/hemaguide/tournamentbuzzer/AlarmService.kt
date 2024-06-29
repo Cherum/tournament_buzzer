@@ -1,4 +1,4 @@
-package com.hemaguide.tournamentalarm
+package com.hemaguide.tournamentbuzzer
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -68,23 +68,23 @@ class AlarmService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("AlarmService", "Service onStartCommand with action: ${intent?.action}")
-        if (intent?.action == "PLAY_TONE") {
-            if (!isPlaying) {
-                playTone()
-            } else {
-                Log.d("AlarmService", "Tone is already playing")
-            }
+        when (intent?.action) {
+            "PLAY_TONE_FIRST" -> playTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD)
+            "PLAY_TONE_SECOND" -> playTone(ToneGenerator.TONE_CDMA_ABBR_ALERT)
+            "PLAY_TONE_THIRD" -> playTone(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK)
+            "PLAY_TONE_FOURTH" -> playTone(ToneGenerator.TONE_CDMA_HIGH_L)
+            else -> Log.d("AlarmService", "Unknown action")
         }
         return START_STICKY
     }
 
-    private fun playTone() {
+    private fun playTone(toneType: Int) {
         Log.d("AlarmService", "Playing tone")
         isPlaying = true
 
         // Introduce a delay before playing the tone to ensure Bluetooth connection is ready
         handler.postDelayed({
-            toneGenerator.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, toneDuration)
+            toneGenerator.startTone(toneType, toneDuration)
 
             // Set a delay to reset isPlaying after the tone duration
             handler.postDelayed({

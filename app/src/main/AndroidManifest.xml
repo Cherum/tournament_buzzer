@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.hemaguide.tournamentalarm">
+    package="com.hemaguide.tournamentbuzzer">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
@@ -10,7 +10,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.TournamentAlarm">
+        android:theme="@style/Theme.TournamentBuzzer">
         <activity
             android:name=".MainActivity"
             android:exported="true">

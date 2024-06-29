@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TournamentAlarm"
+rootProject.name = "TournamentBuzzer"
 include(":app")
