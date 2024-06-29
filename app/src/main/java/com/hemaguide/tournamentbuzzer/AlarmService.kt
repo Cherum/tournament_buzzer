@@ -59,7 +59,7 @@ class AlarmService : Service() {
         val notification: Notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("Alarm Service")
             .setContentText("Alarm service is running")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.logo_schwert_10U)
             .build()
 
         startForeground(1, notification)
