@@ -23,8 +23,7 @@ class AlarmService : Service() {
     private var isPlaying = false
     private val handler = Handler(Looper.getMainLooper())
 
-    private val delayBeforeTone = 1000L // 500ms delay before playing the tone
-    private val toneDuration = 1500 // 2500ms = 2.5 seconds
+    private val toneDuration = 1500
 
     override fun onCreate() {
         super.onCreate()
@@ -66,19 +65,43 @@ class AlarmService : Service() {
         startForeground(1, notification)
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("AlarmService", "Service onStartCommand with action: ${intent?.action}")
-        when (intent?.action) {
-            "PLAY_TONE_FIRST" -> playTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD)
-            "PLAY_TONE_SECOND" -> playTone(ToneGenerator.TONE_CDMA_ABBR_ALERT)
-            "PLAY_TONE_THIRD" -> playTone(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK)
-            "PLAY_TONE_FOURTH" -> playTone(ToneGenerator.TONE_CDMA_HIGH_L)
-            else -> Log.d("AlarmService", "Unknown action")
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        Log.d("AlarmService", "Service onStartCommand with action: ${intent.action}")
+        if (intent.action != null) {
+            val tone = intent.getSerializableExtra("tone_type") as ToneType
+            val sound = when (tone) {
+                ToneType.FIRST -> ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD
+                ToneType.SECOND -> ToneGenerator.TONE_CDMA_ABBR_ALERT
+                ToneType.THIRD -> ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK
+                ToneType.FOURTH -> ToneGenerator.TONE_CDMA_HIGH_L
+            }
+
+            val delay = intent.getSerializableExtra("delay") as AfterBlowDuration
+            val toneDelay = when(delay){
+                AfterBlowDuration.NONE -> 0
+                AfterBlowDuration.ZERO_ONE -> 0.1 * 1000
+                AfterBlowDuration.ZERO_TWO -> 0.2 * 1000
+                AfterBlowDuration.ZERO_THREE -> 0.3 * 1000
+                AfterBlowDuration.ZERO_FOUR -> 0.4 * 1000
+                AfterBlowDuration.ZERO_FIVE -> 0.5 * 1000
+                AfterBlowDuration.ZERO_SIX -> 0.6 * 1000
+                AfterBlowDuration.ZERO_SEVEN -> 0.7 * 1000
+                AfterBlowDuration.ZERO_EIGHT -> 0.8 * 1000
+                AfterBlowDuration.ZERO_NINE -> 0.9 * 1000
+                AfterBlowDuration.ONE_SECOND -> 1 * 1000
+            }
+
+            playTone(sound, toneDelay)
         }
+
         return START_STICKY
     }
 
-    private fun playTone(toneType: Int) {
+    /**
+     * Play a tone for the specified duration.
+     * toneDuration in milliseconds
+     */
+    private fun playTone(toneType: Int, toneDelay: Number) {
         Log.d("AlarmService", "Playing tone")
         isPlaying = true
 
@@ -91,7 +114,7 @@ class AlarmService : Service() {
                 isPlaying = false
                 Log.d("AlarmService", "Tone finished playing")
             }, toneDuration.toLong())
-        }, delayBeforeTone)
+        }, toneDelay.toLong())
     }
 
     override fun onDestroy() {
