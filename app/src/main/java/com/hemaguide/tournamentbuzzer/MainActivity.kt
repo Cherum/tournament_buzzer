@@ -1,6 +1,7 @@
 package com.hemaguide.tournamentbuzzer
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -13,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -20,10 +22,13 @@ import androidx.compose.ui.unit.dp
 import com.hemaguide.tournamentbuzzer.ui.theme.TournamentAlarmTheme
 
 class MainActivity : ComponentActivity() {
+    private var tone = ToneType.FIRST
+    private var afterBlowDuration = AfterBlowDuration.NONE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
         Log.d("MainActivity", "onCreate called")
         startAlarmService()
 
@@ -32,7 +37,9 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainScreen(
                         modifier = Modifier.padding(innerPadding),
-                        onButtonClick = { selectedTone, afterBlowDuration -> playTone(selectedTone, afterBlowDuration) }
+                        onToneChanged = {tone = it},
+                        onDurationChanged = {afterBlowDuration = it},
+                        onButtonClick = { playTone(tone, afterBlowDuration) }
                     )
                 }
             }
@@ -70,7 +77,7 @@ class MainActivity : ComponentActivity() {
         Log.d("MainActivity", "onKeyDown: keyCode = $keyCode")
         if (keyCode == KeyEvent.KEYCODE_CAMERA || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             Log.d("MainActivity", "Key event matched, playing tone")
-            playTone(ToneType.FIRST, AfterBlowDuration.ZERO_FIVE)
+            playTone(tone, afterBlowDuration)
             return true
         }
         return super.onKeyDown(keyCode, event)
@@ -80,11 +87,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-//    onValuesChanged: (ToneType, AfterBlowDuration) -> Unit,
-    onButtonClick: (ToneType, AfterBlowDuration) -> Unit
+    onDurationChanged: (AfterBlowDuration) -> Unit,
+    onToneChanged: (ToneType) -> Unit,
+    onButtonClick: () -> Unit
 ) {
-    var tone by remember { mutableStateOf(ToneType.FIRST) }
-    var afterBlowDuration by remember { mutableStateOf(AfterBlowDuration.NONE) }
 
     Column(
         modifier = modifier
@@ -95,20 +101,21 @@ fun MainScreen(
         Text(
             text = "HEMA Tournament Buzzer"
         )
-        Button(onClick = { onButtonClick(tone, afterBlowDuration) }) {
+        Button(onClick = { onButtonClick() }) {
             Text(text = "Play Sound")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        AfterBlowScreen (duration = afterBlowDuration, onDurationChanged = {afterBlowDuration = it})
+        AfterBlowScreen (onDurationChanged = {onDurationChanged(it)})
 
         Spacer(modifier = Modifier.height(16.dp))
-        AlarmTonePicker (initialTone = tone, onTypeChanged = {tone = it})
+        AlarmTonePicker (onTypeChanged = {onToneChanged(it)})
     }
 }
 
 @Composable
-fun AfterBlowScreen(duration: AfterBlowDuration, onDurationChanged: (AfterBlowDuration) -> Unit){
+fun AfterBlowScreen(onDurationChanged: (AfterBlowDuration) -> Unit){
+    var afterBlowDuration by rememberSaveable { mutableStateOf(AfterBlowDuration.NONE) }
     var afterBlowExpanded by remember { mutableStateOf(false) }
     val afterBlowOptions = listOf(
         AfterBlowDuration.NONE,
@@ -126,7 +133,7 @@ fun AfterBlowScreen(duration: AfterBlowDuration, onDurationChanged: (AfterBlowDu
 
     Row {
         Text(
-            text = "Afterblow duration: $duration",
+            text = "Afterblow duration: ${afterBlowDuration.duration}",
             modifier = Modifier
                 .clickable { afterBlowExpanded = true }
                 .padding(16.dp)
@@ -142,6 +149,7 @@ fun AfterBlowScreen(duration: AfterBlowDuration, onDurationChanged: (AfterBlowDu
                 DropdownMenuItem(
                     onClick = {
                         afterBlowExpanded = false
+                        afterBlowDuration = afterblowDuration
                         onDurationChanged(afterblowDuration)
                     },
                     text = { Text(text = afterblowDuration.duration) }
@@ -152,7 +160,8 @@ fun AfterBlowScreen(duration: AfterBlowDuration, onDurationChanged: (AfterBlowDu
 }
 
 @Composable
-fun AlarmTonePicker(initialTone: ToneType, onTypeChanged: (ToneType) -> Unit){
+fun AlarmTonePicker(onTypeChanged: (ToneType) -> Unit){
+    var selectedTone by rememberSaveable { mutableStateOf(ToneType.FIRST) }
     var toneExpanded by remember { mutableStateOf(false) }
     val toneOptions = listOf(
         ToneType.FIRST,
@@ -163,7 +172,7 @@ fun AlarmTonePicker(initialTone: ToneType, onTypeChanged: (ToneType) -> Unit){
 
     Box {
         Text(
-            text = "Tone: $initialTone",
+            text = "Tone: $selectedTone",
             modifier = Modifier
                 .clickable { toneExpanded = true }
                 .padding(16.dp)
@@ -179,6 +188,7 @@ fun AlarmTonePicker(initialTone: ToneType, onTypeChanged: (ToneType) -> Unit){
                 DropdownMenuItem(
                     onClick = {
                         toneExpanded = false
+                        selectedTone = tone
                         onTypeChanged(tone)
                     },
                     text = { Text(text = tone.name) }

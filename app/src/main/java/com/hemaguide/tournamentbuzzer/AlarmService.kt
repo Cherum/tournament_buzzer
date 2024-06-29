@@ -103,6 +103,9 @@ class AlarmService : Service() {
      */
     private fun playTone(toneType: Int, toneDelay: Number) {
         Log.d("AlarmService", "Playing tone")
+        if (isPlaying){
+            return
+        }
         isPlaying = true
 
         // Introduce a delay before playing the tone to ensure Bluetooth connection is ready
