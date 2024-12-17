@@ -9,6 +9,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,62 +23,80 @@ import androidx.compose.ui.unit.dp
 import com.hemaguide.tournamentbuzzer.ui.theme.TournamentAlarmTheme
 
 class MainActivity : ComponentActivity() {
-    private var tone = ToneType.FIRST
-    private var afterBlowDuration = AfterBlowDuration.NONE
+    private val viewModel: MainViewModel by viewModels()
+
+    companion object {
+        private const val TAG = "MainActivity"
+        private const val SCREEN_BRIGHTNESS = 0.1f
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-        Log.d("MainActivity", "onCreate called")
+        Log.d(TAG, "onCreate called")
         startAlarmService()
 
         setContent {
             TournamentAlarmTheme {
+                val tone by viewModel.tone.collectAsState()
+                val afterBlowDuration by viewModel.afterBlowDuration.collectAsState()
+                var playToneTrigger by remember { mutableStateOf(false) }
+
+                if (playToneTrigger) {
+                    playTone(tone, afterBlowDuration)
+                    playToneTrigger = false
+                }
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainScreen(
                         modifier = Modifier.padding(innerPadding),
-                        onToneChanged = {tone = it},
-                        onDurationChanged = {afterBlowDuration = it},
-                        onButtonClick = { playTone(tone, afterBlowDuration) }
+                        onToneChanged = { viewModel.setTone(it) },
+                        onDurationChanged = { viewModel.setAfterBlowDuration(it) },
+                        onButtonClick = { playToneTrigger = true }
                     )
                 }
             }
         }
 
-        // Bildschirm im gesperrten Zustand aktiv halten und abdunkeln
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
                 WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
                 WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON)
 
-        // Bildschirmhelligkeit auf Minimum setzen
         val layoutParams = window.attributes
-        layoutParams.screenBrightness = 0.1f  // Set brightness to 10%
+        layoutParams.screenBrightness = SCREEN_BRIGHTNESS
         window.attributes = layoutParams
     }
 
     private fun startAlarmService() {
-        Log.d("MainActivity", "Starting AlarmService")
+        Log.d(TAG, "Starting AlarmService")
         val intent = Intent(this, AlarmService::class.java)
         startForegroundService(intent)
     }
 
     private fun playTone(toneType: ToneType, duration: AfterBlowDuration) {
-        Log.d("MainActivity", "Sending $toneType action to AlarmService")
-        val intent = Intent(this, AlarmService::class.java)
-        intent.action = toneType.name
-        intent.putExtra("delay", duration)
-        intent.putExtra("tone_type", toneType)
+        Log.d(TAG, "Sending $toneType action to AlarmService")
+        val intent = Intent(this, AlarmService::class.java).apply {
+            action = toneType.name
+            putExtra("delay", duration)
+            putExtra("tone_type", toneType)
+        }
         startForegroundService(intent)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        Log.d("MainActivity", "onKeyDown: keyCode = $keyCode")
+        Log.d(TAG, "onKeyDown: keyCode = $keyCode")
         if (keyCode == KeyEvent.KEYCODE_CAMERA || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-            Log.d("MainActivity", "Key event matched, playing tone")
-            playTone(tone, afterBlowDuration)
+            Log.d(TAG, "Key event matched, playing tone")
+            setContent {
+                TournamentAlarmTheme {
+                    val tone by viewModel.tone.collectAsState()
+                    val afterBlowDuration by viewModel.afterBlowDuration.collectAsState()
+                    playTone(tone, afterBlowDuration)
+                }
+            }
             return true
         }
         return super.onKeyDown(keyCode, event)
@@ -91,32 +110,28 @@ fun MainScreen(
     onToneChanged: (ToneType) -> Unit,
     onButtonClick: () -> Unit
 ) {
-
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+            .padding(16.dp)
     ) {
-        Text(
-            text = "HEMA Tournament Buzzer"
-        )
+        Text(text = "HEMA Tournament Buzzer")
 
         Spacer(modifier = Modifier.height(16.dp))
-        AfterBlowScreen (onDurationChanged = {onDurationChanged(it)})
+        AfterBlowScreen(onDurationChanged = onDurationChanged)
 
         Spacer(modifier = Modifier.height(16.dp))
-        AlarmTonePicker (onTypeChanged = {onToneChanged(it)})
+        AlarmTonePicker(onTypeChanged = onToneChanged)
 
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { onButtonClick() }) {
+        Button(onClick = onButtonClick) {
             Text(text = "Play Sound")
         }
     }
 }
 
 @Composable
-fun AfterBlowScreen(onDurationChanged: (AfterBlowDuration) -> Unit){
+fun AfterBlowScreen(onDurationChanged: (AfterBlowDuration) -> Unit) {
     var afterBlowDuration by rememberSaveable { mutableStateOf(AfterBlowDuration.NONE) }
     var afterBlowExpanded by remember { mutableStateOf(false) }
     val afterBlowOptions = listOf(
@@ -162,14 +177,13 @@ fun AfterBlowScreen(onDurationChanged: (AfterBlowDuration) -> Unit){
 }
 
 @Composable
-fun AlarmTonePicker(onTypeChanged: (ToneType) -> Unit){
+fun AlarmTonePicker(onTypeChanged: (ToneType) -> Unit) {
     var selectedTone by rememberSaveable { mutableStateOf(ToneType.FIRST) }
     var toneExpanded by remember { mutableStateOf(false) }
     val toneOptions = listOf(
         ToneType.FIRST,
         ToneType.SECOND,
-        ToneType.THIRD,
-        ToneType.FOURTH
+        ToneType.THIRD
     )
 
     Box {
