@@ -134,26 +134,12 @@ fun MainScreen(
 fun AfterBlowScreen(onDurationChanged: (AfterBlowDuration) -> Unit) {
     var afterBlowDuration by rememberSaveable { mutableStateOf(AfterBlowDuration.NONE) }
     var afterBlowExpanded by remember { mutableStateOf(false) }
-    val afterBlowOptions = listOf(
-        AfterBlowDuration.NONE,
-        AfterBlowDuration.ZERO_ONE,
-        AfterBlowDuration.ZERO_TWO,
-        AfterBlowDuration.ZERO_THREE,
-        AfterBlowDuration.ZERO_FOUR,
-        AfterBlowDuration.ZERO_FIVE,
-        AfterBlowDuration.ZERO_SIX,
-        AfterBlowDuration.ZERO_SEVEN,
-        AfterBlowDuration.ZERO_EIGHT,
-        AfterBlowDuration.ZERO_NINE,
-        AfterBlowDuration.ONE_SECOND
-    )
 
-    Row {
+    Box(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Afterblow duration: ${afterBlowDuration.duration}",
             modifier = Modifier
                 .clickable { afterBlowExpanded = true }
-                .padding(16.dp)
                 .background(Color.Green, shape = MaterialTheme.shapes.medium)
                 .padding(16.dp),
             color = MaterialTheme.colorScheme.onPrimary
@@ -162,7 +148,7 @@ fun AfterBlowScreen(onDurationChanged: (AfterBlowDuration) -> Unit) {
             expanded = afterBlowExpanded,
             onDismissRequest = { afterBlowExpanded = false }
         ) {
-            afterBlowOptions.forEach { afterblowDuration ->
+            AFTER_BLOW_OPTIONS.forEach { afterblowDuration ->
                 DropdownMenuItem(
                     onClick = {
                         afterBlowExpanded = false
@@ -180,18 +166,12 @@ fun AfterBlowScreen(onDurationChanged: (AfterBlowDuration) -> Unit) {
 fun AlarmTonePicker(onTypeChanged: (ToneType) -> Unit) {
     var selectedTone by rememberSaveable { mutableStateOf(ToneType.FIRST) }
     var toneExpanded by remember { mutableStateOf(false) }
-    val toneOptions = listOf(
-        ToneType.FIRST,
-        ToneType.SECOND,
-        ToneType.THIRD
-    )
 
-    Box {
+    Box(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Tone: $selectedTone",
             modifier = Modifier
                 .clickable { toneExpanded = true }
-                .padding(16.dp)
                 .background(Color.Cyan, shape = MaterialTheme.shapes.large)
                 .padding(16.dp),
             color = MaterialTheme.colorScheme.onPrimary
@@ -200,7 +180,7 @@ fun AlarmTonePicker(onTypeChanged: (ToneType) -> Unit) {
             expanded = toneExpanded,
             onDismissRequest = { toneExpanded = false }
         ) {
-            toneOptions.forEach { tone ->
+            TONE_OPTIONS.forEach { tone ->
                 DropdownMenuItem(
                     onClick = {
                         toneExpanded = false
