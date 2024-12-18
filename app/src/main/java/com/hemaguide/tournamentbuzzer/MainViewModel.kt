@@ -1,5 +1,6 @@
 package com.hemaguide.tournamentbuzzer
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
@@ -17,7 +18,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private val _afterBlowDuration = MutableStateFlow(AfterBlowDuration.NONE)
+    private val _afterBlowDuration = MutableStateFlow(AfterBlowDuration.ZERO_FIVE)
     val afterBlowDuration: StateFlow<AfterBlowDuration> = _afterBlowDuration.asStateFlow()
     fun setAfterBlowDuration(duration: AfterBlowDuration) {
         viewModelScope.launch {
@@ -48,10 +49,21 @@ class MainViewModel : ViewModel() {
     private val _isProgressPlaying = MutableStateFlow(false)
     val isProgressPlaying: StateFlow<Boolean> = _isProgressPlaying.asStateFlow()
 
+    private val _buttonText = MutableStateFlow("Play Sound")
+    val buttonText: StateFlow<String> = _buttonText.asStateFlow()
+
+    private val _buttonColor = MutableStateFlow(Color.Blue)
+    val buttonColor: StateFlow<Color> = _buttonColor.asStateFlow()
+
     fun setProgressPlaying(isPlaying: Boolean) {
         _isProgressPlaying.value = isPlaying
         if (isPlaying) {
+            _buttonText.value = "Playing..."
+            _buttonColor.value = Color.Red
             startProgress()
+        } else {
+            _buttonText.value = "Play Sound"
+            _buttonColor.value = Color.Blue
         }
     }
 
@@ -65,6 +77,8 @@ class MainViewModel : ViewModel() {
             }
             _progress.value = 1.0f
             _isProgressPlaying.value = false
+            setProgressPlaying(false)
         }
     }
+
 }

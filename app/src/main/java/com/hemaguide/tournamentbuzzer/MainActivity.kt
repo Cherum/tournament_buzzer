@@ -12,14 +12,17 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
@@ -146,6 +149,8 @@ fun MainScreen(
 ) {
     val progress by viewModel.progress.collectAsState()
     val isPlaying by viewModel.isProgressPlaying.collectAsState()
+    val buttonText by viewModel.buttonText.collectAsState()
+    val buttonColor by viewModel.buttonColor.collectAsState()
 
     LaunchedEffect(isPlaying) {
         if (isPlaying) {
@@ -161,27 +166,39 @@ fun MainScreen(
         Text(text = "HEMA Tournament Buzzer")
 
         Spacer(modifier = Modifier.height(16.dp))
-        AfterBlowScreen(
-            duration = afterBlowDuration,
-            expanded = afterBlowExpanded,
-            onDurationChanged = onDurationChanged,
-            onExpandedChanged = onAfterBlowExpandedChanged
-        )
+        Row (
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ){
+            AfterBlowScreen(
+                duration = afterBlowDuration,
+                expanded = afterBlowExpanded,
+                onDurationChanged = onDurationChanged,
+                onExpandedChanged = onAfterBlowExpandedChanged,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            )
+            AlarmTonePicker(
+                tone = tone,
+                expanded = toneExpanded,
+                onTypeChanged = onToneChanged,
+                onExpandedChanged = onToneExpandedChanged,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
-        AlarmTonePicker(
-            tone = tone,
-            expanded = toneExpanded,
-            onTypeChanged = onToneChanged,
-            onExpandedChanged = onToneExpandedChanged
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            onButtonClick()
-            viewModel.setProgressPlaying(true)
-        }) {
-            Text(text = "Play Sound")
+        Button(
+            onClick = {
+                onButtonClick()
+                viewModel.setProgressPlaying(true)
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = buttonColor)
+        ) {
+            Text(text = buttonText)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -213,11 +230,12 @@ fun AfterBlowScreen(
     duration: AfterBlowDuration,
     expanded: Boolean,
     onDurationChanged: (AfterBlowDuration) -> Unit,
-    onExpandedChanged: (Boolean) -> Unit
+    onExpandedChanged: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = modifier) {
         Text(
-            text = "Afterblow Delay: ${duration.duration}",
+            text = "Afterblow: ${duration.duration}",
             modifier = Modifier
                 .clickable { onExpandedChanged(true) }
                 .background(Color.Green, shape = MaterialTheme.shapes.medium)
@@ -246,9 +264,10 @@ fun AlarmTonePicker(
     tone: ToneType,
     expanded: Boolean,
     onTypeChanged: (ToneType) -> Unit,
-    onExpandedChanged: (Boolean) -> Unit
+    onExpandedChanged: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = modifier) {
         Text(
             text = "Tone: $tone",
             modifier = Modifier
