@@ -98,13 +98,9 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "onKeyDown: keyCode = $keyCode")
         if (keyCode == KeyEvent.KEYCODE_CAMERA || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             Log.d(TAG, "Key event matched, playing tone")
-            setContent {
-                TournamentAlarmTheme {
-                    val tone by viewModel.tone.collectAsState()
-                    val afterBlowDuration by viewModel.afterBlowDuration.collectAsState()
-                    playTone(tone, afterBlowDuration)
-                }
-            }
+            val tone = viewModel.tone.value
+            val afterBlowDuration = viewModel.afterBlowDuration.value
+            playTone(tone, afterBlowDuration)
             return true
         }
         return super.onKeyDown(keyCode, event)
@@ -163,7 +159,7 @@ fun AfterBlowScreen(
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Afterblow duration: ${duration.duration}",
+            text = "Afterblow Delay: ${duration.duration}",
             modifier = Modifier
                 .clickable { onExpandedChanged(true) }
                 .background(Color.Green, shape = MaterialTheme.shapes.medium)
