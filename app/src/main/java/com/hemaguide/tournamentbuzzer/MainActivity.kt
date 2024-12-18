@@ -12,10 +12,27 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,6 +78,7 @@ class MainActivity : ComponentActivity() {
                         onDurationChanged = { viewModel.setAfterBlowDuration(it) },
                         onAfterBlowExpandedChanged = { viewModel.setAfterBlowExpanded(it) },
                         onToneExpandedChanged = { viewModel.setToneExpanded(it) },
+                        viewModel = viewModel,
                         onButtonClick = { playToneTrigger = true }
                     )
                 }
@@ -94,13 +112,18 @@ class MainActivity : ComponentActivity() {
         startForegroundService(intent)
     }
 
+    private fun startProgress() {
+        val tone = viewModel.tone.value
+        val afterBlowDuration = viewModel.afterBlowDuration.value
+        playTone(tone, afterBlowDuration)
+        viewModel.setProgressPlaying(true)
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         Log.d(TAG, "onKeyDown: keyCode = $keyCode")
         if (keyCode == KeyEvent.KEYCODE_CAMERA || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             Log.d(TAG, "Key event matched, playing tone")
-            val tone = viewModel.tone.value
-            val afterBlowDuration = viewModel.afterBlowDuration.value
-            playTone(tone, afterBlowDuration)
+            startProgress()
             return true
         }
         return super.onKeyDown(keyCode, event)
@@ -118,8 +141,18 @@ fun MainScreen(
     onToneChanged: (ToneType) -> Unit,
     onAfterBlowExpandedChanged: (Boolean) -> Unit,
     onToneExpandedChanged: (Boolean) -> Unit,
-    onButtonClick: () -> Unit
+    onButtonClick: () -> Unit,
+    viewModel: MainViewModel
 ) {
+    val progress by viewModel.progress.collectAsState()
+    val isPlaying by viewModel.isProgressPlaying.collectAsState()
+
+    LaunchedEffect(isPlaying) {
+        if (isPlaying) {
+            viewModel.startProgress()
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -144,10 +177,35 @@ fun MainScreen(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onButtonClick) {
+        Button(onClick = {
+            onButtonClick()
+            viewModel.setProgressPlaying(true)
+        }) {
             Text(text = "Play Sound")
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        LinearProgressIndicator(
+            progress = progress,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(24.dp)
+        )
     }
+}
+
+val AfterBlowDuration.durationInMillis: Int get() = when (this) {
+    AfterBlowDuration.NONE -> 0
+    AfterBlowDuration.ZERO_ONE -> 100
+    AfterBlowDuration.ZERO_TWO -> 200
+    AfterBlowDuration.ZERO_THREE -> 300
+    AfterBlowDuration.ZERO_FOUR -> 400
+    AfterBlowDuration.ZERO_FIVE -> 500
+    AfterBlowDuration.ZERO_SIX -> 600
+    AfterBlowDuration.ZERO_SEVEN -> 700
+    AfterBlowDuration.ZERO_EIGHT -> 800
+    AfterBlowDuration.ZERO_NINE -> 900
+    AfterBlowDuration.ONE_SECOND -> 1000
 }
 
 @Composable
@@ -219,6 +277,7 @@ fun AlarmTonePicker(
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
+    val viewModel = MainViewModel()
     TournamentAlarmTheme {
         MainScreen(
             tone = ToneType.SECOND,
@@ -229,6 +288,7 @@ fun GreetingPreview() {
             onAfterBlowExpandedChanged = { },
             toneExpanded = false,
             afterBlowExpanded = false,
+            viewModel = viewModel,
             onButtonClick = {}
         )
     }

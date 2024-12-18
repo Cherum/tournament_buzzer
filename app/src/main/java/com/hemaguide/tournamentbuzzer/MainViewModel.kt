@@ -2,6 +2,7 @@ package com.hemaguide.tournamentbuzzer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +38,33 @@ class MainViewModel : ViewModel() {
     fun setToneExpanded(expanded: Boolean) {
         viewModelScope.launch {
             _toneExpanded.emit(expanded)
+        }
+    }
+
+
+    private val _progress = MutableStateFlow(0.0f)
+    val progress: StateFlow<Float> = _progress.asStateFlow()
+
+    private val _isProgressPlaying = MutableStateFlow(false)
+    val isProgressPlaying: StateFlow<Boolean> = _isProgressPlaying.asStateFlow()
+
+    fun setProgressPlaying(isPlaying: Boolean) {
+        _isProgressPlaying.value = isPlaying
+        if (isPlaying) {
+            startProgress()
+        }
+    }
+
+    fun startProgress() {
+        viewModelScope.launch {
+            val totalDuration = afterBlowDuration.value.durationInMillis
+            val interval = 100L
+            for (time in 0..totalDuration step interval.toInt()) {
+                _progress.value = time / totalDuration.toFloat()
+                delay(interval)
+            }
+            _progress.value = 1.0f
+            _isProgressPlaying.value = false
         }
     }
 }
