@@ -51,6 +51,8 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainScreen(
                         modifier = Modifier.padding(innerPadding),
+                        tone = tone,
+                        afterBlowDuration = afterBlowDuration,
                         onToneChanged = { viewModel.setTone(it) },
                         onDurationChanged = { viewModel.setAfterBlowDuration(it) },
                         onButtonClick = { playToneTrigger = true }
@@ -106,6 +108,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
+    tone: ToneType,
+    afterBlowDuration: AfterBlowDuration,
     onDurationChanged: (AfterBlowDuration) -> Unit,
     onToneChanged: (ToneType) -> Unit,
     onButtonClick: () -> Unit
@@ -118,10 +122,10 @@ fun MainScreen(
         Text(text = "HEMA Tournament Buzzer")
 
         Spacer(modifier = Modifier.height(16.dp))
-        AfterBlowScreen(onDurationChanged = onDurationChanged)
+        AfterBlowScreen(afterBlowDuration, onDurationChanged = onDurationChanged)
 
         Spacer(modifier = Modifier.height(16.dp))
-        AlarmTonePicker(onTypeChanged = onToneChanged)
+        AlarmTonePicker(tone = tone, onTypeChanged = onToneChanged)
 
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onButtonClick) {
@@ -131,13 +135,12 @@ fun MainScreen(
 }
 
 @Composable
-fun AfterBlowScreen(onDurationChanged: (AfterBlowDuration) -> Unit) {
-    var afterBlowDuration by rememberSaveable { mutableStateOf(AfterBlowDuration.NONE) }
-    var afterBlowExpanded by remember { mutableStateOf(false) }
+fun AfterBlowScreen(duration: AfterBlowDuration, onDurationChanged: (AfterBlowDuration) -> Unit) {
+    var afterBlowExpanded by rememberSaveable { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Afterblow duration: ${afterBlowDuration.duration}",
+            text = "Afterblow duration: ${duration.duration}",
             modifier = Modifier
                 .clickable { afterBlowExpanded = true }
                 .background(Color.Green, shape = MaterialTheme.shapes.medium)
@@ -152,7 +155,6 @@ fun AfterBlowScreen(onDurationChanged: (AfterBlowDuration) -> Unit) {
                 DropdownMenuItem(
                     onClick = {
                         afterBlowExpanded = false
-                        afterBlowDuration = afterblowDuration
                         onDurationChanged(afterblowDuration)
                     },
                     text = { Text(text = afterblowDuration.duration) }
@@ -163,13 +165,12 @@ fun AfterBlowScreen(onDurationChanged: (AfterBlowDuration) -> Unit) {
 }
 
 @Composable
-fun AlarmTonePicker(onTypeChanged: (ToneType) -> Unit) {
-    var selectedTone by rememberSaveable { mutableStateOf(ToneType.FIRST) }
-    var toneExpanded by remember { mutableStateOf(false) }
+fun AlarmTonePicker(tone: ToneType, onTypeChanged: (ToneType) -> Unit) {
+    var toneExpanded by rememberSaveable { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Tone: $selectedTone",
+            text = "Tone: $tone",
             modifier = Modifier
                 .clickable { toneExpanded = true }
                 .background(Color.Cyan, shape = MaterialTheme.shapes.large)
@@ -180,14 +181,13 @@ fun AlarmTonePicker(onTypeChanged: (ToneType) -> Unit) {
             expanded = toneExpanded,
             onDismissRequest = { toneExpanded = false }
         ) {
-            TONE_OPTIONS.forEach { tone ->
+            TONE_OPTIONS.forEach { toneOption ->
                 DropdownMenuItem(
                     onClick = {
                         toneExpanded = false
-                        selectedTone = tone
-                        onTypeChanged(tone)
+                        onTypeChanged(toneOption)
                     },
-                    text = { Text(text = tone.name) }
+                    text = { Text(text = toneOption.name) }
                 )
             }
         }
@@ -198,6 +198,12 @@ fun AlarmTonePicker(onTypeChanged: (ToneType) -> Unit) {
 @Composable
 fun GreetingPreview() {
     TournamentAlarmTheme {
-        MainScreen(onButtonClick = {}, onDurationChanged = {}, onToneChanged = {})
+        MainScreen(
+            tone = ToneType.SECOND,
+            afterBlowDuration = AfterBlowDuration.ZERO_TWO,
+            onButtonClick = {},
+            onDurationChanged = {},
+            onToneChanged = {}
+        )
     }
 }
