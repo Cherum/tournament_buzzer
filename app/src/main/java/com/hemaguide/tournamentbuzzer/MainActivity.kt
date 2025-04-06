@@ -1,7 +1,11 @@
 package com.hemaguide.tournamentbuzzer
 
+import android.Manifest
+import android.app.Fragment
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -9,6 +13,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,18 +24,84 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.hemaguide.tournamentbuzzer.ui.theme.TournamentAlarmTheme
 
 class MainActivity : ComponentActivity() {
     private var tone = ToneType.FIRST
     private var afterBlowDuration = AfterBlowDuration.NONE
 
+    private val requestBluetoothPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                // Permission granted: Proceed with Bluetooth functionality
+                startAlarmService()
+            } else {
+                // Permission denied: Handle the case where the user denies the permission
+                // For example, show a message explaining why the permission is needed
+                Log.e("MainActivity","Bluetooth permission denied")
+            }
+        }
+
+    fun checkBluetoothPermissionAndStartService(activity: MainActivity, fragment: Fragment? = null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // For Android 12 (S) and above
+            if (ContextCompat.checkSelfPermission(
+                    activity,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                // BLUETOOTH_CONNECT permission is granted
+                startAlarmService()
+            } else {
+                // Request BLUETOOTH_CONNECT permission
+                requestBluetoothPermissions(activity, fragment, arrayOf(Manifest.permission.BLUETOOTH_CONNECT))
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // For devices below Android 12 (S) but above or equal to Android 6 (M)
+            // Check if both BLUETOOTH and BLUETOOTH_ADMIN are granted
+            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(activity, Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_GRANTED) {
+                // Both permissions granted
+                startAlarmService()
+            } else {
+                // Request both permissions if they are not granted
+                requestBluetoothPermissions(activity, fragment, arrayOf(Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN))
+            }
+        }else{
+            // For devices below Android 6 (M) no runtime permissions needed
+            startAlarmService()
+        }
+    }
+
+    private fun requestBluetoothPermissions(activity: MainActivity, fragment: Fragment? = null, permissions: Array<String>) {
+        if (fragment != null) {
+            fragment.requestPermissions(permissions, 1)
+        } else {
+            ActivityCompat.requestPermissions(activity, permissions, 1)
+        }
+    }
+
+    fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray, activity: androidx.fragment.app.FragmentActivity) {
+        if (requestCode == 1) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                // All permissions granted, proceed with Bluetooth functionality
+                startAlarmService()
+            } else {
+                // Handle permission denial (e.g., show a message, disable features, etc.)
+                println("Permissions denied")
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
         Log.d("MainActivity", "onCreate called")
-        startAlarmService()
+
+        checkBluetoothPermissionAndStartService(this)
 
         setContent {
             TournamentAlarmTheme {
