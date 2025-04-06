@@ -42,6 +42,8 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            merges += "META-INF/LICENSE.md"
+            merges += "META-INF/LICENSE-notice.md"
         }
     }
 }
@@ -51,12 +53,23 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material")
+    implementation(libs.androidx.compose.ui.ui)
+    implementation(libs.androidx.compose.ui.ui.graphics)
+    implementation(libs.androidx.compose.ui.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3.material3)
+    implementation(libs.material)
+    implementation(libs.junit.jupiter)
+    implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.fragment.ktx)
     debugImplementation(libs.ui.tooling)
+
+    // Add the following dependencies for testing
+    testImplementation(libs.junit.v5132)
+    testImplementation(libs.kotlinx.coroutines.test.v173)
+    testImplementation(libs.androidx.core.testing.v220)
+    testImplementation(libs.mockito.kotlin.v400)
+    testImplementation(libs.mockito.core.v400)
+    testImplementation(libs.mockito.core.v2270)
+    androidTestImplementation(libs.mockito.android)
 }
 
