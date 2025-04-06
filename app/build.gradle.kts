@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.compose.material3.material3)
     implementation(libs.material)
     implementation(libs.junit.jupiter)
+    implementation(libs.androidx.fragment.ktx)
     debugImplementation(libs.ui.tooling)
 
     // Add the following dependencies for testing
